@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-EduBank | 나의 AI 정밀 진단 리포트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8 text-gray-800">
+    <div class="max-w-6xl mx-auto">
+        
+        <div class="mb-8 flex justify-between items-end">
+            <div>
+                <button onclick="location.href='/'" class="flex items-center text-gray-500 hover:text-indigo-600 font-bold mb-2 transition-colors">
+                    <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> 대시보드로 돌아가기
+                </button>
+                <h1 class="text-3xl font-extrabold text-gray-900"><span id="r-name" class="text-indigo-600">학습자</span>님의 <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-lg ml-2">AI 정밀 진단 리포트</span></h1>
+                <p class="text-gray-500 mt-1">빅데이터 및 머신러닝 알고리즘을 활용한 다차원 학습 성취도 분석 결과입니다.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                <h2 class="text-lg font-bold mb-4 flex items-center text-gray-800">
+                    <i data-lucide="radar" class="mr-2 text-indigo-500"></i> 1. 영역별 성취도 비교 (기술통계학)
+                </h2>
+                <div class="relative h-64 w-full flex-1"><canvas id="radarChart"></canvas></div>
+                <p class="text-xs text-gray-400 mt-3 text-center">클래스 평균 대비 나의 단원별 정취 수준을 다각형으로 비교합니다.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                <h2 class="text-lg font-bold mb-4 flex items-center text-gray-800">
+                    <i data-lucide="scatter-chart" class="mr-2 text-orange-500"></i> 2. 학습 행동 패턴 (고민 시간 vs 정답)
+                </h2>
+                <div class="relative h-64 w-full flex-1"><canvas id="scatterChart"></canvas></div>
+                <p class="text-xs text-gray-400 mt-3 text-center">우측 하단에 점이 몰릴 경우 '시간 지연 오답(병목 구간)' 심화 진단이 필요합니다.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                <h2 class="text-lg font-bold flex items-center justify-between text-gray-800 mb-4">
+                    <span class="flex items-center"><i data-lucide="trending-up" class="mr-2 text-blue-500"></i> 3. IRT 능력치 성장 추세 (선형회귀)</span>
+                    <span id="r-pred" class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">다음 예상: 0.0</span>
+                </h2>
+                <div class="relative h-64 w-full flex-1"><canvas id="lineChart"></canvas></div>
+                <p class="text-xs text-gray-400 mt-3 text-center">머신러닝 선형회귀 추세선을 통해 미래의 학습 역량을 예측합니다.</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-2xl shadow-lg text-white flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold mb-3 flex items-center text-indigo-300">
+                        <i data-lucide="users" class="mr-2"></i> 4. 학습 도플갱어 상위 5인 분석 (협업필터링)
+                    </h2>
+                    <p class="text-indigo-200 text-sm leading-relaxed mb-4">
+                        코사인 유사도를 기반으로 나와 풀이 패턴이 가장 유사한 동료 학습자 그룹을 탐색하였습니다.
+                    </p>
+                </div>
+                <div class="bg-white/10 p-5 rounded-xl border border-white/15 my-auto">
+                    <p class="text-xs text-indigo-300 mb-1">도플갱어 그룹의 공통 취약점</p>
+                    <p id="r-cf" class="text-2xl font-black text-rose-400">분석 중...</p>
+                </div>
+                <p class="text-xs text-indigo-300/80 mt-3 text-center">💡 이웃들이 겪은 병목 구간을 미리 학습하여 시행착오를 줄이세요.</p>
+            </div>
+
+            <div class="lg:col-span-2 bg-gradient-to-r from-emerald-900 to-teal-950 p-8 rounded-2xl shadow-xl text-white flex flex-col md:flex-row items-center justify-between">
+                <div class="space-y-2 mb-6 md:mb-0">
+                    <div class="flex items-center text-emerald-300 font-bold text-sm">
+                        <i data-lucide="target" class="w-4 h-4 mr-2"></i> 5. 머신러닝 분류 분석 (로지스틱 회귀)
+                    </div>
+                    <h2 class="text-2xl font-extrabold">과목 최종 수료(Pass) 목표 도달 확률</h2>
+                    <p class="text-emerald-100 text-sm max-w-xl leading-relaxed">
+                        시그모이드(Sigmoid) S자 함수 모델을 적용하여, 학습자님의 누적 정답률과 IRT 능력치($\theta$)를 바탕으로 산출한 합격 예측 확률입니다.
+                    </p>
+                </div>
+                <div class="flex items-center space-x-6 bg-white/10 px-8 py-5 rounded-2xl border border-white/20">
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-emerald-300 uppercase tracking-wider">예측 결과</p>
+                        <p class="text-sm font-medium text-white">상위권 수료 안정권</p>
+                    </div>
+                    <div class="w-24 h-24 flex items-center justify-center bg-emerald-500/30 rounded-full border-4 border-emerald-400 shadow-inner">
+                        <span id="r-prob" class="text-3xl font-black text-emerald-300">0%</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        async function loadReport() {
+            const userId = localStorage.getItem("loggedInUser");
+            if (!userId) return alert("로그인이 필요합니다.");
+
+            const res = await fetch(`http://127.0.0.1:8000/api/report/${userId}`);
+            const data = await res.json();
+
+            // 텍스트 데이터 렌더링
+            document.getElementById('r-name').textContent = data.name;
+            document.getElementById('r-prob').textContent = data.logistic_prob + "%";
+            document.getElementById('r-cf').textContent = data.cf_insight;
+            document.getElementById('r-pred').textContent = `다음 회차 예상 IRT (θ): ${data.line.pred > 0 ? '+'+data.line.pred : data.line.pred}`;
+
+            // 1. 방사형 차트
+            new Chart(document.getElementById('radarChart'), {
+                type: 'radar',
+                data: {
+                    labels: data.radar.labels,
+                    datasets: [
+                        { label: '나의 정답률', data: data.radar.user, backgroundColor: 'rgba(79, 70, 229, 0.2)', borderColor: 'rgb(79, 70, 229)' },
+                        { label: '클래스 평균', data: data.radar.class, backgroundColor: 'rgba(156, 163, 175, 0.2)', borderColor: 'rgb(156, 163, 175)' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 2. 산점도 차트
+            new Chart(document.getElementById('scatterChart'), {
+                type: 'scatter',
+                data: { datasets: [{ label: '풀이 기록', data: data.scatter, backgroundColor: 'rgba(249, 115, 22, 0.6)' }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: '고민 시간 (초)' } },
+                        y: { title: { display: true, text: '오답(0) / 정답(1)' }, min: -0.2, max: 1.2 }
+                    }
+                }
+            });
+
+            // 3. 선형 회귀 차트
+            new Chart(document.getElementById('lineChart'), {
+                type: 'line',
+                data: {
+                    labels: data.line.x,
+                    datasets: [
+                        { label: '실제 능력치 (θ)', data: data.line.y, borderColor: 'rgb(59, 130, 246)', tension: 0.3 },
+                        { label: '선형 회귀 추세선', data: data.line.trend, borderColor: 'rgb(156, 163, 175)', borderDash: [5, 5] }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+</body>
+</html>

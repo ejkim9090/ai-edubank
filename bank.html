@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-EduBank 전체 문제은행</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen overflow-hidden text-gray-800">
+
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        <div class="p-6">
+            <h1 class="text-2xl font-extrabold text-indigo-700 flex items-center">
+                <i data-lucide="brain" class="mr-2"></i> AI-EduBank
+            </h1>
+        </div>
+        <nav class="flex-1 px-4 space-y-2">
+            <button onclick="location.href='/'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors text-gray-600 hover:bg-gray-100">
+                <i data-lucide="home" class="w-5 h-5"></i><span>대시보드</span>
+            </button>
+            <button class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors bg-indigo-50 text-indigo-700 font-bold">
+                <i data-lucide="database" class="w-5 h-5"></i><span>문제은행</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8">
+        <header class="mb-8 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-gray-800">단원별 문제은행</h2>
+        </header>
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
+                        <th class="px-6 py-4 font-medium">문제 번호</th>
+                        <th class="px-6 py-4 font-medium">단원명</th>
+                        <th class="px-6 py-4 font-medium">문제 내용</th>
+                        <th class="px-6 py-4 font-medium">난이도 (IRT b모수)</th>
+                        <th class="px-6 py-4 font-medium text-center">학습하기</th>
+                    </tr>
+                </thead>
+                <tbody id="question-list" class="text-sm text-gray-700 divide-y divide-gray-100">
+                    <tr><td colspan="5" class="text-center py-8">데이터를 불러오는 중입니다...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        async function loadAllQuestions() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/questions');
+                const questions = await response.json();
+                
+                const listContainer = document.getElementById('question-list');
+                listContainer.innerHTML = ''; // 로딩 텍스트 지우기
+
+                questions.forEach(q => {
+                    listContainer.innerHTML += `
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-6 py-4 font-bold text-indigo-600">${q.question_id}</td>
+                            <td class="px-6 py-4"><span class="px-2 py-1 bg-gray-100 rounded-md text-xs font-medium text-gray-600">${q.topic}</span></td>
+                            <td class="px-6 py-4 text-gray-800 truncate max-w-md">${q.content}</td>
+                            <td class="px-6 py-4 text-gray-500">${q.difficulty}</td>
+                            <td class="px-6 py-4 text-center">
+                                <button onclick="location.href='/quiz?q_id=${q.question_id}'" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">
+                                    풀기
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error("문제 목록 로딩 실패!", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAllQuestions);
+    </script>
+</body>
+</html>

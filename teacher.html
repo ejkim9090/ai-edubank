@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-EduBank | 교수자 환류 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen text-gray-800">
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 shadow-2xl">
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-2xl font-extrabold flex items-center text-teal-400">
+                <i data-lucide="shield-check" class="mr-2"></i> AI Teacher
+            </h1>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <button class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-slate-800 text-white font-bold">
+                <i data-lucide="pie-chart" class="w-5 h-5 text-teal-400"></i><span>클래스 종합 분석</span>
+            </button>
+            <button onclick="location.href='/login'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors text-slate-400">
+                <i data-lucide="log-out" class="w-5 h-5"></i><span>학생 모드로 가기</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-10">
+        <div class="mb-8 flex justify-between items-end">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">학습 환류 (Learning Analytics) 리포트</h2>
+                <p class="text-gray-500 mt-2">3,000건의 누적 풀이 데이터를 기반으로 한 클래스 진단 결과입니다.</p>
+            </div>
+            <div class="bg-teal-50 text-teal-700 px-4 py-2 rounded-lg font-bold flex items-center border border-teal-200">
+                <i data-lucide="brain" class="w-5 h-5 mr-2"></i> IRT 추정 클래스 평균 능력치 (θ): <span id="t-theta" class="ml-2 text-xl">0.0</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-sm font-bold text-gray-400 mb-1">총 등록 학생</p>
+                <p class="text-4xl font-extrabold text-slate-700"><span id="t-students">0</span><span class="text-lg font-medium text-gray-400 ml-1">명</span></p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-sm font-bold text-gray-400 mb-1">누적 문제 풀이 데이터</p>
+                <p class="text-4xl font-extrabold text-blue-600"><span id="t-solved">0</span><span class="text-lg font-medium text-blue-400 ml-1">건</span></p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-sm font-bold text-gray-400 mb-1">클래스 평균 정답률</p>
+                <p class="text-4xl font-extrabold text-emerald-500"><span id="t-rate">0</span><span class="text-lg font-medium text-emerald-300 ml-1">%</span></p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[460px]">
+                <h3 class="text-xl font-bold mb-4 flex items-center text-slate-800">
+                    <i data-lucide="bar-chart-3" class="mr-2 text-blue-500"></i> 단원별 정답률 분석
+                </h3>
+                <div class="flex-1 relative w-full h-full min-h-0">
+                    <canvas id="conceptChart"></canvas>
+                </div>
+            </div>
+
+            <div class="flex flex-col space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-rose-100 bg-rose-50/30">
+                    <h3 class="text-lg font-bold mb-2 flex items-center text-rose-600">
+                        <i data-lucide="alert-triangle" class="mr-2"></i> 클래스 공통 취약 단원
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-3">다음 차시 수업 도입부에서 반드시 보충 설명이 필요한 개념입니다.</p>
+                    <p id="t-weak" class="text-2xl font-black text-rose-700">분석 중...</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[280px]">
+                    <h3 class="text-lg font-bold mb-3 flex items-center text-orange-500 justify-between">
+                        <span class="flex items-center">
+                            <i data-lucide="life-buoy" class="mr-2"></i> 즉각 개입 필요 학생 (시간 지연 오답 누적)
+                        </span>
+                    </h3>
+                    <ul id="t-help-list" class="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                        <li class="text-center text-gray-400 py-4">분석 중...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+
+    <script>
+        lucide.createIcons();
+
+        let conceptChartInstance = null;
+
+        async function loadTeacherDashboard() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/teacher/stats');
+                const data = await response.json();
+
+                // 텍스트 데이터 채우기
+                document.getElementById('t-students').textContent = data.total_students.toLocaleString();
+                document.getElementById('t-solved').textContent = data.total_solved.toLocaleString();
+                document.getElementById('t-rate').textContent = data.correct_rate;
+                document.getElementById('t-theta').textContent = data.avg_theta > 0 ? `+${data.avg_theta}` : data.avg_theta;
+                document.getElementById('t-weak').textContent = data.weak_concept;
+
+                // 개입 필요 학생 리스트 렌더링
+                const helpList = document.getElementById('t-help-list');
+                helpList.innerHTML = '';
+                if (data.needs_help_students && data.needs_help_students.length > 0) {
+                    data.needs_help_students.forEach(student => {
+                        // 🌟 버튼 클릭 시 정확한 user_id를 달고 상세 페이지로 넘어갑니다!
+                        helpList.innerHTML += `
+                            <button onclick="location.href='/student_detail?user_id=${student.user_id}'" class="w-full text-left p-3 border border-orange-100 bg-orange-50/50 flex justify-between items-center rounded-xl hover:bg-orange-100 transition-colors cursor-pointer mb-2">
+                                <div class="flex items-center">
+                                    <div class="bg-orange-200 text-orange-700 rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">
+                                        <i data-lucide="user-search" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-gray-800">${student.name} 학생</span>
+                                        <span class="text-xs text-gray-500 ml-1">(ID: ${student.user_id})</span>
+                                    </div>
+                                </div>
+                                <div class="text-right flex flex-col items-end">
+                                    <span class="text-xs font-bold bg-orange-500 text-white px-2.5 py-1 rounded-md shadow-sm mb-1">상세 진단 보기</span>
+                                    <span class="text-[10px] text-gray-500 font-medium">추정 능력치: ${student.theta}</span>
+                                </div>
+                            </button>
+                        `;
+                    });
+                } else {
+                    helpList.innerHTML = '<li class="p-4 bg-gray-50 text-gray-500 rounded-lg text-center text-sm font-medium">현재 개입이 필요한 학생이 없습니다.</li>';
+                }
+                lucide.createIcons(); // 동적 생성 아이콘 렌더링
+
+                // Chart.js 그래프 렌더링
+                const ctx = document.getElementById('conceptChart').getContext('2d');
+                if (conceptChartInstance) conceptChartInstance.destroy();
+                
+                conceptChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.chart_labels,
+                        datasets: [{
+                            label: '단원별 정답률 (%)',
+                            data: data.chart_data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, max: 100 }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+
+            } catch (e) {
+                console.error("통계 로딩 실패", e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTeacherDashboard);
+    </script>
+</body>
+</html>

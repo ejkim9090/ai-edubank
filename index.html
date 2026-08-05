@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-EduBank | 학생 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen text-gray-800">
+
+    <aside class="w-64 bg-indigo-900 text-white flex flex-col flex-shrink-0 shadow-2xl">
+        <div class="p-6 border-b border-indigo-800">
+            <h1 class="text-2xl font-extrabold flex items-center">
+                <i data-lucide="brain" class="mr-2 text-indigo-300"></i> AI-EduBank
+            </h1>
+        </div>
+        <div class="p-6 border-b border-indigo-800/50 flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center font-bold text-lg">
+                🧑‍🎓
+            </div>
+            <div>
+                <p id="sidebar-name" class="font-bold text-white">학습자</p>
+                <p class="text-xs text-indigo-300">학생 모드 접속 중</p>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <button class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-indigo-800 text-white font-bold">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>대시보드</span>
+            </button>
+            <button onclick="location.href='/bank'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-indigo-800 transition-colors text-indigo-200">
+                <i data-lucide="book-open" class="w-5 h-5"></i><span>전체 문제은행</span>
+            </button>
+            <button onclick="localStorage.clear(); location.href='/login';" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-indigo-800 transition-colors text-indigo-300 mt-auto">
+                <i data-lucide="log-out" class="w-5 h-5"></i><span>로그아웃</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-10">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">반갑습니다, <span id="welcome-name" class="text-indigo-600">학습자</span>님! 👋</h2>
+            <p class="text-gray-500 mt-2">오늘도 AI 추천 문제와 함께 파이썬 실력을 키워보세요.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 mb-1">총 풀이 문제</p>
+                <p class="text-3xl font-extrabold text-indigo-600"><span id="stat-solved">0</span>문제</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 mb-1">평균 정답률</p>
+                <p class="text-3xl font-extrabold text-emerald-500"><span id="stat-rate">0</span>%</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 mb-1">평균 고민 시간</p>
+                <p class="text-3xl font-extrabold text-amber-500"><span id="stat-time">0</span>초</p>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 mb-1">학습 레벨</p>
+                <p class="text-3xl font-extrabold text-purple-600">Lv.<span id="stat-level">1</span></p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold mb-4 flex items-center text-gray-800">
+                        <i data-lucide="sparkles" class="mr-2 text-indigo-600"></i> AI 맞춤 추천 & 오답 복습
+                    </h3>
+                    <div id="recommendation-list" class="space-y-4">
+                        <p class="text-gray-400 text-center py-8">AI가 학습 데이터를 분석하고 있습니다...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 bg-gradient-to-br from-white to-indigo-50/30">
+                    <h3 class="text-lg font-bold mb-4 text-indigo-900 flex items-center border-b border-indigo-100 pb-3">
+                        <i data-lucide="user-check" class="mr-2 text-indigo-600"></i> 나의 AI 학습 프로필
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center bg-white p-3.5 rounded-xl border border-indigo-50 shadow-sm">
+                            <span class="text-xs font-bold text-gray-500">AI 문해력 수준</span>
+                            <span id="profile-literacy" class="text-sm font-extrabold text-indigo-600">분석 중...</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-white p-3.5 rounded-xl border border-indigo-50 shadow-sm">
+                            <span class="text-xs font-bold text-gray-500">학습 선호 성향</span>
+                            <span id="profile-tendency" class="text-sm font-extrabold text-purple-600">자율형</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-white p-3.5 rounded-xl border border-indigo-50 shadow-sm">
+                            <span class="text-xs font-bold text-gray-500">IRT 추정 능력치 (θ)</span>
+                            <span id="profile-theta" class="text-sm font-extrabold text-emerald-600">+0.0</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-indigo-100/60 rounded-xl text-xs text-indigo-800 leading-relaxed font-medium">
+                        💡 <b>AI 맞춤 팁:</b> 나와 오답 패턴이 비슷한 동료들이 자주 틀린 문항을 복습하면 능력이 더 빠르게 상승합니다!
+                    </div>
+                    
+                    <button onclick="location.href='/my_report'" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3.5 rounded-xl shadow-md flex items-center justify-center transition-colors">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 mr-2"></i> 5대 정밀 진단 리포트 열람하기
+                    </button>
+                    
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        const BASE_URL = "http://127.0.0.1:8000/api";
+        
+        async function loadDashboardData(userId) {
+            try {
+                // 1. 대시보드 통계 가져오기
+                const statRes = await fetch(`${BASE_URL}/dashboard/${userId}`);
+                const statData = await statRes.json();
+
+                document.getElementById('welcome-name').textContent = statData.name;
+                document.getElementById('sidebar-name').textContent = statData.name;
+                document.getElementById('stat-solved').textContent = statData.solved_count;
+                document.getElementById('stat-rate').textContent = statData.correct_rate;
+                document.getElementById('stat-time').textContent = statData.avg_time_sec;
+                document.getElementById('stat-level').textContent = statData.level;
+
+                // 우측 프로필 정보 채우기
+                document.getElementById('profile-literacy').textContent = statData.ai_literacy;
+                document.getElementById('profile-tendency').textContent = statData.learning_tendency;
+                document.getElementById('profile-theta').textContent = statData.theta > 0 ? `+${statData.theta}` : statData.theta;
+
+                // 2. AI 추천 데이터 가져오기
+                const recRes = await fetch(`${BASE_URL}/recommend/${userId}`);
+                const recData = await recRes.json();
+                
+                const recContainer = document.getElementById('recommendation-list');
+                recContainer.innerHTML = '';
+
+                // 시간 지연 오답 (복습 문제) 렌더링
+                if (recData.review_questions && recData.review_questions.length > 0) {
+                    recData.review_questions.forEach(q => {
+                        recContainer.innerHTML += `
+                            <div class="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100 mb-3">
+                                <div>
+                                    <p class="font-bold text-gray-800">[복습] ${q.content}</p>
+                                    <p class="text-sm text-red-500 mt-1">${q.topic} • 시간 지연 오답 다시 풀기</p>
+                                </div>
+                                <button onclick="location.href='/quiz?q_id=${q.question_id}'" class="text-red-600 font-medium hover:underline text-sm bg-white px-3 py-2 rounded-lg shadow-sm border border-red-200">도전하기</button>
+                            </div>
+                        `;
+                    });
+                }
+
+                // AI 추천 문제 (필수 뱃지 + XAI 이웃 수 문구 포함) 렌더링
+                if (recData.recommended_questions && recData.recommended_questions.length > 0) {
+                    recData.recommended_questions.forEach(q => {
+                        const essentialBadge = q.is_essential 
+                            ? `<span class="bg-rose-100 text-rose-600 text-xs font-extrabold px-2 py-0.5 rounded-full border border-rose-200 ml-2">🔥 필수</span>` 
+                            : '';
+
+                        const explanationText = q.peer_count > 0
+                            ? `<p class="text-xs text-indigo-600 font-bold mt-2 flex items-center bg-white px-2.5 py-1 rounded-md w-fit shadow-sm border border-indigo-100">
+                                <i data-lucide="users" class="w-3.5 h-3.5 mr-1"></i> 나와 오답 패턴이 비슷한 ${q.peer_count}명의 친구들이 맞힌 문제예요!
+                               </p>`
+                            : `<p class="text-xs text-emerald-600 font-bold mt-2 flex items-center bg-white px-2.5 py-1 rounded-md w-fit shadow-sm border border-emerald-100">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5 mr-1"></i> AI가 분석한 학습자님의 맞춤형 핵심 개념입니다.
+                               </p>`;
+
+                        recContainer.innerHTML += `
+                            <div class="flex flex-col p-4 bg-indigo-50/70 rounded-xl border border-indigo-100 mb-3">
+                                <div class="flex items-center justify-between w-full">
+                                    <div>
+                                        <div class="flex items-center mb-1">
+                                            <span class="text-xs font-bold text-indigo-500">${q.topic}</span>
+                                            ${essentialBadge}
+                                        </div>
+                                        <p class="font-bold text-gray-800">${q.content}</p>
+                                    </div>
+                                    <button onclick="location.href='/quiz?q_id=${q.question_id}'" class="text-indigo-600 font-bold text-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-200 whitespace-nowrap ml-4 hover:bg-indigo-600 hover:text-white transition-colors">
+                                        도전하기
+                                    </button>
+                                </div>
+                                ${explanationText}
+                            </div>
+                        `;
+                    });
+                }
+
+                lucide.createIcons();
+
+            } catch (error) {
+                console.error("데이터 로딩 실패!", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = localStorage.getItem("loggedInUser");
+            if (!loggedInUser) {
+                window.location.href = "/login";
+            } else {
+                loadDashboardData(loggedInUser); 
+            }
+        });
+    </script>
+</body>
+</html>

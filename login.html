@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-EduBank 로그인</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center h-screen">
+
+    <div class="bg-white p-10 rounded-3xl shadow-xl w-full max-w-md border border-gray-100">
+        <div class="text-center mb-8">
+            <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600">
+                <i data-lucide="brain" class="w-8 h-8"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-800">AI-EduBank</h1>
+            <p class="text-gray-500 mt-2">나만의 맞춤형 파이썬 학습 시작하기</p>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">학생 번호 (User ID)</label>
+                <input type="number" id="user-id-input" placeholder="예: 1, 2, 3" value="1"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all">
+            </div>
+            
+            <button onclick="handleLogin()" 
+                class="w-full bg-indigo-600 text-white font-bold text-lg py-3 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">
+                로그인
+            </button>
+        </div>
+        
+        <p class="text-xs text-center text-gray-400 mt-6">테스트용 계정: 1(김은주), 2(박학생), 3(이코딩)</p>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function handleLogin() {
+            const userId = document.getElementById('user-id-input').value;
+            if (!userId) {
+                alert("학생 번호를 입력해주세요!");
+                return;
+            }
+            
+            // 💡 핵심: 브라우저 저장소(localStorage)에 로그인한 학생의 번호를 기록합니다!
+            localStorage.setItem("loggedInUser", userId);
+            
+            // 로그인 성공 시 대시보드(메인 화면)로 이동
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

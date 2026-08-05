@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 맞춤 문제 풀이</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+    <div class="bg-white w-full max-w-3xl rounded-3xl shadow-xl overflow-hidden flex flex-col h-[600px]">
+        <div class="bg-indigo-600 text-white p-6 flex justify-between items-center">
+            <div>
+                <span id="q-topic" class="bg-indigo-500 px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block">단원명 로딩중</span>
+                <h2 class="text-xl font-bold">AI 맞춤 추천 문제</h2>
+            </div>
+            <div class="flex items-center space-x-2 bg-indigo-800 px-4 py-2 rounded-xl font-mono text-2xl tracking-widest shadow-inner">
+                <i data-lucide="timer" class="w-6 h-6 text-yellow-300"></i>
+                <span id="timer-display" class="text-yellow-300">00:00</span>
+            </div>
+        </div>
+
+        <div class="flex-1 p-10 flex flex-col justify-center text-center">
+            <h1 id="q-content" class="text-3xl font-bold text-gray-800 leading-relaxed">
+                문제를 불러오는 중입니다...
+            </h1>
+        </div>
+
+        <div class="p-8 bg-gray-50 border-t border-gray-200">
+            <div class="flex space-x-4">
+                <input type="text" id="answer-input" placeholder="정답을 입력하세요" onkeypress="if(event.keyCode==13) submitAnswer();"
+                    class="flex-1 text-lg px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200 outline-none transition-all">
+                <button id="submit-btn" onclick="submitAnswer()" 
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg px-10 py-4 rounded-xl shadow-md transition-colors flex items-center">
+                    <span>제출하기</span>
+                    <i data-lucide="send" class="ml-2 w-5 h-5"></i>
+                </button>
+            </div>
+            <p id="result-msg" class="mt-4 text-center font-bold text-lg hidden"></p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        let seconds = 0;
+        let timerInterval;
+        let correctAnswer = "";
+
+        // 주소창에서 넘어온 문제 번호(q_id) 읽기
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentQuestionId = urlParams.get('q_id') || "Q001"; // 없으면 Q001
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+                const secs = String(seconds % 60).padStart(2, '0');
+                document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        async function loadQuestion() {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/question/${currentQuestionId}`);
+                const data = await response.json();
+                
+                document.getElementById('q-topic').textContent = data.topic;
+                document.getElementById('q-content').textContent = data.content;
+                correctAnswer = data.answer; 
+
+                startTimer(); 
+            } catch (error) {
+                document.getElementById('q-content').textContent = "문제 로딩 실패!";
+            }
+        }
+
+        // 정답 제출 및 파이썬으로 데이터 전송
+        async function submitAnswer() {
+            clearInterval(timerInterval); // 타이머 멈춤
+            const userAnswer = document.getElementById('answer-input').value.trim();
+            const resultMsg = document.getElementById('result-msg');
+            const isCorrect = (userAnswer === correctAnswer);
+
+            // 패턴 분류 (10초 이내면 빠른응답, 아니면 지연응답)
+            let patternClass = 0;
+            if (isCorrect && seconds <= 10) patternClass = 1;      // 빠른 정답
+            else if (isCorrect && seconds > 10) patternClass = 2;  // 지연 정답
+            else if (!isCorrect && seconds <= 10) patternClass = 3;// 빠른 오답
+            else patternClass = 4;                                 // 지연 오답
+
+            resultMsg.classList.remove('hidden');
+            document.getElementById('answer-input').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+
+            if (isCorrect) {
+                resultMsg.className = "mt-4 text-center font-bold text-lg text-green-600";
+                resultMsg.innerHTML = `🎉 정답입니다! (소요 시간: ${seconds}초)<br><span class="text-sm text-gray-500 mt-2 block">패턴${patternClass} 기록 완료. <a href='/' class='text-indigo-500 underline'>대시보드로 돌아가기</a></span>`;
+            } else {
+                resultMsg.className = "mt-4 text-center font-bold text-lg text-red-600";
+                resultMsg.innerHTML = `❌ 오답입니다. 정답은 '${correctAnswer}' (소요 시간: ${seconds}초)<br><span class="text-sm text-gray-500 mt-2 block">패턴${patternClass} 기록 완료. <a href='/' class='text-indigo-500 underline'>대시보드로 돌아가기</a></span>`;
+            }
+
+            // 👇 이 부분이 가장 중요합니다! 파이썬 서버로 POST 전송
+            const loggedInUser = localStorage.getItem("loggedInUser");
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // body: JSON.stringify({
+                    //     user_id: 1,  // 현재 1번 학생(김은주)으로 고정 테스트
+                    //     question_id: currentQuestionId,
+                    //     is_correct: isCorrect,
+                    //     time_spent: seconds,
+                    //     pattern_class: patternClass
+                    // })
+                    body: JSON.stringify({
+                        user_id: parseInt(loggedInUser), // 👈 저장된 아이디를 씁니다!
+                        question_id: currentQuestionId,
+                        is_correct: isCorrect,
+                        time_spent: seconds,
+                        pattern_class: patternClass
+                    })
+                });
+                
+                const responseData = await response.json();
+                console.log("서버 저장 결과:", responseData);
+            } catch(e) {
+                console.error("데이터 저장 실패!", e);
+            }
+        }
+
+        // 화면 켜지면 문제 로드
+        document.addEventListener('DOMContentLoaded', loadQuestion);
+    </script>
+</body>
+</html>

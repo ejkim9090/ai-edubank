@@ -67,7 +67,7 @@
 
         async function loadQuestion() {
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/question/${currentQuestionId}`);
+                const response = await fetch(`/api/question/${currentQuestionId}`);
                 const data = await response.json();
                 
                 document.getElementById('q-topic').textContent = data.topic;
@@ -109,7 +109,7 @@
             // 👇 이 부분이 가장 중요합니다! 파이썬 서버로 POST 전송
             const loggedInUser = localStorage.getItem("loggedInUser");
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/submit', {
+                const response = await fetch('/api/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     // body: JSON.stringify({

@@ -113,7 +113,7 @@
 
         async function loadTeacherDashboard() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/teacher/stats');
+                const response = await fetch('/api/teacher/stats');
                 const data = await response.json();
 
                 // 텍스트 데이터 채우기

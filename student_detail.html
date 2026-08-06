@@ -76,7 +76,7 @@
             }
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/teacher/student/${userId}`);
+                const response = await fetch(`/api/teacher/student/${userId}`);
                 const data = await response.json();
 
                 document.getElementById('s-name').textContent = data.user.name;

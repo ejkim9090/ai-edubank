@@ -57,7 +57,7 @@
 
         async function loadAllQuestions() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/questions');
+                const response = await fetch('/api/questions');
                 const questions = await response.json();
                 
                 const listContainer = document.getElementById('question-list');
